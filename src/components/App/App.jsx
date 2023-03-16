@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast } from 'react-toastify';
@@ -15,18 +15,20 @@ export default function App() {
   const [status, setStatus] = useState('idle');
   const [query, setQuery] = useState([]);
   const [page, setPage] = useState(1);
-  const [searhQuery, setSearhQuery] = useState('');
+  const [name, setName] = useState('');
   const [modalAlt, setModalAlt] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalImg, setModalImg] = useState('');
   const [error, setError] = useState(null);
   const [showBtn, setShowBtn] = useState(false);
-
   useEffect(() => {
+    if (name === '') {
+      return;
+    }
     setStatus('pending');
 
     pixabayApi
-      .fetchQuery(query, page)
+      .fetchQuery(name, page)
       .then(({ hits, totalHits }) => {
         const images = hits.map(({ id, webformatURL, largeImageURL, tags }) => {
           return { id, webformatURL, largeImageURL, tags };
@@ -36,7 +38,7 @@ export default function App() {
           setStatus('resolved');
           setShowBtn(page < Math.ceil(totalHits / 20));
         } else {
-          toast.error(`По запросу ${query} ничего не найдено.`);
+          toast.error(`По запросу ${name} ничего не найдено.`);
           setStatus('idle');
         }
       })
@@ -44,14 +46,14 @@ export default function App() {
         setError(error);
         setStatus('rejected');
       });
-  }, [query, page]);
+  }, [name, page]);
 
   const handleSubmitInput = newQuery => {
-    if (newQuery !== searhQuery) {
-      setQuery([]);
-      setSearhQuery(newQuery);
+    if (newQuery !== name) {
+      setName(newQuery);
       setPage(1);
       setStatus('pending');
+      setQuery([]);
     }
   };
 
@@ -93,6 +95,7 @@ export default function App() {
   }
 
   if (status === 'pending') {
+    // console.log('pending', state.query);
     return (
       <div>
         <Searchbar onSubmit={handleSubmitInput} />
@@ -107,6 +110,7 @@ export default function App() {
   }
 
   if (status === 'resolved') {
+    // console.log('resolved', state.query);
     return (
       <>
         {showModal && (
